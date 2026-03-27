@@ -58,7 +58,7 @@ setup(
     # List of dependencies
     install_requires=[
         # Dependencies go here!
-        'biopython'
+        'biopython', 'jupyter'
     ],
     python_requires='>=3.10',
 )
