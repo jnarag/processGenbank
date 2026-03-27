@@ -7,13 +7,13 @@ from setuptools import setup, find_packages
 
 def get_version():
     """
-    Get version number from the probeSeq module.
-    The easiest way would be to just ``import probeSeq ``
+    Get version number from the genbank_utils module.
+    The easiest way would be to just ``import genbank_utils ``
     """
     import os
     import sys
 
-    sys.path.append(os.path.abspath('probeSeq'))
+    sys.path.append(os.path.abspath('genbank_utils'))
     from version_info import VERSION as version # noqa
     sys.path.pop()
 
@@ -30,7 +30,7 @@ def get_readme():
 
 setup(
     # Module name (lowercase)
-    name='probeSeq',
+    name='genbank_utils',
 
     # Version
     version=get_version(),
@@ -49,10 +49,10 @@ setup(
 
     maintainer_email='',
 
-    url='https://github.com/jnarag/probePanel.git',
+    url='https://github.com/jnarag/processGenbank.git',
 
     # Packages to include
-    packages=find_packages(include=('probeSeq', 'probeSeq.*')),
+    packages=find_packages(include=('genbank_utils', 'genbank_utils.*')),
     include_package_data=True,
 
     # List of dependencies
