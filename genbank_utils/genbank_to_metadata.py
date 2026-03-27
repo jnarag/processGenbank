@@ -277,6 +277,9 @@ def process_gb_seg(gb_file, working_dir, virus_family):
         if 'lab_host' in features_qualifiers.keys():
             continue
 
+        if 'cell culture' in host:
+            continue
+
         # The Date field may need further processing.
         t_date, year = process_date(d)
 
