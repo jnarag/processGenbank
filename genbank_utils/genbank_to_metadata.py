@@ -25,7 +25,7 @@ def process_gb(gb_file, working_dir, virus_family):
 
     # Write out the column names to the metadata file.
     out_tablefile_handle.write(
-        "Sequence Name,Accession_no,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,Pubmed_id\n")
+        "Sequence Name,Accession_no,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,Pubmed_id,Flag\n")
 
 
     ### PROCESS GENBANK FILE ###
@@ -79,6 +79,7 @@ def process_gb(gb_file, working_dir, virus_family):
         country = "NA"
         accession_no = record.annotations['accessions'][0]
         organism = features_qualifiers['organism'][0]
+        flag = ""
 
         # Get the Pubmed id of the publication associated with the record/sequence
         reference = record.annotations['references'][0]
@@ -123,10 +124,13 @@ def process_gb(gb_file, working_dir, virus_family):
             notes = features_qualifiers['note'][0]
 
             if 'experiment' in notes or 'vaccine' in notes:
-                continue
+                flag = "experiment or vaccine"
 
         if 'lab_host' in features_qualifiers.keys():
-            continue
+            flag = "lab host"
+
+        if 'cell culture' in host:
+            flag = "cell culture"
 
         # The Date field may need further processing.
         t_date, year = process_date(d)
@@ -149,7 +153,8 @@ def process_gb(gb_file, working_dir, virus_family):
             str(t_date) + "," +
             str(year) + "," +
             str(len(record.seq)) + "," +
-            str(pubmed_id) + "\n")
+            str(pubmed_id) + "," +
+            flag + "\n")
 
         out_tablefile_handle.flush()
 
@@ -183,7 +188,7 @@ def process_gb_seg(gb_file, working_dir, virus_family):
 
     # Write out the column names to the metadata file.
     out_tablefile_handle.write(
-        "Sequence Name,Accession_no,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,Pubmed_id\n")
+        "Sequence Name,Accession_no,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,Pubmed_id,Flag\n")
 
 
     ### PROCESS GENBANK FILE ###
@@ -233,6 +238,7 @@ def process_gb_seg(gb_file, working_dir, virus_family):
         country = "NA"
         accession_no = record.annotations['accessions'][0]
         organism = features_qualifiers['organism'][0].replace(" ", "..")
+        flag = ""
 
         # Get the Pubmed id of the publication associated with the record/sequence
         reference = record.annotations['references'][0]
@@ -272,13 +278,13 @@ def process_gb_seg(gb_file, working_dir, virus_family):
             notes = features_qualifiers['note'][0]
 
             if 'experiment' in notes or 'vaccine' in notes:
-                continue
+                flag = "experiment or vaccine"
 
         if 'lab_host' in features_qualifiers.keys():
-            continue
+            flag = "lab host"
 
         if 'cell culture' in host:
-            continue
+            flag = "cell culture"
 
         # The Date field may need further processing.
         t_date, year = process_date(d)
@@ -305,7 +311,8 @@ def process_gb_seg(gb_file, working_dir, virus_family):
             str(t_date) + "," +
             str(year) + "," +
             str(len(record.seq)) + "," +
-            str(pubmed_id) + "\n")
+            str(pubmed_id) + "," +
+            flag + "\n")
 
         out_tablefile_handle.flush()
 
