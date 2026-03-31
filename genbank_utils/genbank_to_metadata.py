@@ -1,12 +1,13 @@
 __author__ = 'jayna'
 
 from Bio import SeqIO
+from Bio import AlignIO
 from datetime import datetime, date
 import os
+import pandas as pd
 
 month_to_num = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10,
                 'Nov': 11, 'Dec': 12}
-
 
 def process_gb(gb_file, working_dir, virus_family):
 
@@ -322,6 +323,36 @@ def process_gb_seg(gb_file, working_dir, virus_family):
     input_handle.close()
     out_tablefile_handle.close()
 
+def rename_fasta(aln_file, metadata_file):
+
+    metadata = pd.read_csv(metadata_file)
+    aln = AlignIO.read(aln_file, 'fasta')
+
+    accession_numbers = metadata["Accession_number"]
+
+    for i in accession_numbers.keys():
+
+        for s in range(0, len(aln)):
+
+            name = aln[s].name
+            acc = accession_numbers.get(i)
+
+            if acc in name:
+
+                metadata.s = metadata[metadata.Accession_number == acc]
+
+                new_name =  metadata.s['Accession_number'].get(i) + "_" + \
+                            metadata.s['Country'].get(i) + "_" + \
+                            metadata.s['Host'].get(i) + "_" + \
+                            metadata.s['Year'].get(i) + "_" + \
+                            metadata.s['Organism'].get(i)
+
+                aln[s].name = new_name
+                aln[s].id = new_name
+                aln[s].description = ""
+
+    new_fasta = aln_file.replace(".fasta", "_renamed.fasta")
+    AlignIO.write(aln, new_fasta, 'fasta')
 
 def is_number(s):
     try:
