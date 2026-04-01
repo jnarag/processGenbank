@@ -323,7 +323,7 @@ def process_gb_seg(gb_file, working_dir, virus_family):
     input_handle.close()
     out_tablefile_handle.close()
 
-def process_gb_to_fasta(gb_file, working_dir, virus_family, min_length, host_taxafile):
+def process_gb_to_fasta(gb_file, working_dir, virus_family):
 
     ### GENBANK FILE ###
     # create a variable to read your genbank file (i.e. gb_file). Note "r", which indicates the file is readable.
@@ -349,8 +349,6 @@ def process_gb_to_fasta(gb_file, working_dir, virus_family, min_length, host_tax
     out_tablefile_handle.write(
         "Sequence Name,Accession_no,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,%Sequence_gap,Pubmed_id\n")
 
-    with open(host_taxafile) as f:
-        rodentia_taxa = f.read().splitlines()
 
     ### PROCESS GENBANK FILE ###
 
@@ -465,7 +463,7 @@ def process_gb_to_fasta(gb_file, working_dir, virus_family, min_length, host_tax
 
         count += 1
 
-        tmp_min_length = min_length
+        tmp_min_length = 0
 
         for f in record.features:
 
@@ -556,7 +554,7 @@ def process_gb_to_fasta(gb_file, working_dir, virus_family, min_length, host_tax
     input_handle.close()
     out_tablefile_handle.close()
 
-def process_gb_to_fasta_seg(gb_file, working_dir, virus_family, segment_length, segments, host_taxafile):
+def process_gb_to_fasta_seg(gb_file, working_dir, virus_family):
     product_gene_list = []
     ### GENBANK FILE ###
     # create a variable to read your genbank file (i.e. gb_file). Note "r", which indicates the file is readable.
@@ -581,15 +579,9 @@ def process_gb_to_fasta_seg(gb_file, working_dir, virus_family, segment_length, 
     out_tablefile_handle.write(
         "Sequence Name,Accession_no,Segment,Strain,Organism,Species/Genus,Host,Country,Collection_date,Year,Sequence_length,Pubmed_id,Flag\n")
 
-    with open(host_taxafile) as f:
-        rodentia_taxa = f.read().splitlines()
-
     ### PROCESS GENBANK FILE ###
 
-    species_dict_by_seg = {}
-
-    for seg in segments.keys():
-        species_dict_by_seg[seg] = {}
+    species_dict = {}
 
     for index, record in enumerate(SeqIO.parse(input_handle, "genbank")):
 
@@ -697,10 +689,6 @@ def process_gb_to_fasta_seg(gb_file, working_dir, virus_family, segment_length, 
 
         count += 1
 
-        segment_records = {}
-        for seg in segments.keys():
-            segment_records[seg] = None
-
 
         for f in record.features:
             if f.type == "CDS":
@@ -721,100 +709,69 @@ def process_gb_to_fasta_seg(gb_file, working_dir, virus_family, segment_length, 
                     if ("segment" in record.features[0].qualifiers.keys()):
                         product_or_gene = record.features[0].qualifiers["segment"][0] + " protein"
 
-                for seg in segments.keys():
+            N_percentage = (str(record.seq).count('N') / len(str(record.seq))) * 100
 
-                    tmp_min_length = segment_length[seg]
+            new_record = Bio.SeqRecord.SeqRecord(name=name, seq=record.seq)
 
-                    if product_or_gene in segments[seg]:
+            if (species_or_genus not in species_dict.keys()):
+                species_dict[species_or_genus] = []
+                species_dict[species_or_genus].append(new_record)
 
-                        seq = f.location.extract(record).seq
+                # This line writes out all the metadata collected for each record to the metadata output file (out_tablefile)
+                out_tablefile_handle.write(
+                    name + "," +
+                    accession_no + "," +
+                    isolate + "," +
+                    organism + "," +
+                    species_or_genus + "," +
+                    host + "," +
+                    country.replace(":", " ") + "," +
+                    str(t_date) + "," +
+                    str(year) + "," +
+                    str(len(record.seq)) + "," +
+                    "{:.2f}".format(N_percentage) + "," +
+                    str(pubmed_id) + "," +
+                    flag + "\n")
 
-                        if (len(str(seq)) > tmp_min_length):
-                            tmp_min_length = len(str(seq))
+                out_tablefile_handle.flush()
 
-                            N_percentage = str(seq).count('N') / len(str(seq))
+            else:
+                species_dict[species_or_genus].append(new_record)
 
-                            if (N_percentage >= 0.1):
-                                continue
+                # This line writes out all the metadata collected for each record to the metadata output file (out_tablefile)
+                out_tablefile_handle.write(
+                    name + "," +
+                    accession_no + "," +
+                    isolate + "," +
+                    organism + "," +
+                    species_or_genus + "," +
+                    host.replace(":", " ") + "," +
+                    country.replace(":", " ") + "," +
+                    str(t_date) + "," +
+                    str(year) + "," +
+                    str(len(record.seq)) + "," +
+                    "{:.2f}".format(N_percentage) + "," +
+                    str(pubmed_id) + "," +
+                    flag + "\n")
 
-                            else:
+                out_tablefile_handle.flush()
 
-                                segment_records[seg] = Bio.SeqRecord.SeqRecord(name=name, seq=seq)
-
-                        else:
-                            continue
-
-        #     new_record = Bio.SeqRecord.SeqRecord(name=name, seq=record.seq)
-        #
-
-        for seg in segments.keys():
-
-            seg_record = segment_records[seg]
-
-            if (seg_record is not None):
-
-                if (species_or_genus not in species_dict_by_seg[seg].keys()):
-
-                    species_dict_by_seg[seg][species_or_genus] = []
-                    species_dict_by_seg[seg][species_or_genus].append(seg_record)
-
-                    # This line writes out all the metadata collected for each record to the metadata output file (out_tablefile)
-                    out_tablefile_handle.write(
-                        name + "," +
-                        accession_no + "," +
-                        seg + "," +
-                        isolate + "," +
-                        organism + "," +
-                        species_or_genus + "," +
-                        host + "," +
-                        country.replace(":", " ") + "," +
-                        str(t_date) + "," +
-                        str(year) + "," +
-                        str(len(seg_record.seq)) + "," +
-                        str(pubmed_id) + "," +
-                        flag + "\n")
-
-                    out_tablefile_handle.flush()
-
-                else:
-                    species_dict_by_seg[seg][species_or_genus].append(seg_record)
-
-                    # This line writes out all the metadata collected for each record to the metadata output file (out_tablefile)
-                    out_tablefile_handle.write(
-                        name + "," +
-                        accession_no + "," +
-                        seg + "," +
-                        isolate + "," +
-                        organism + "," +
-                        species_or_genus + "," +
-                        host.replace(":", " ") + "," +
-                        country.replace(":", " ") + "," +
-                        str(t_date) + "," +
-                        str(year) + "," +
-                        str(len(seg_record.seq)) + "," +
-                        str(pubmed_id) + "," +
-                        flag + "\n")
-
-                    out_tablefile_handle.flush()
-
-
-    for seg in segments.keys():
         try:
-            os.makedirs(working_dir + "/" + virus_family + "/" + seg)
+            os.makedirs(working_dir + "/" + virus_family)
 
         except FileExistsError:
             # directory already exists
             pass
 
-        for s in species_dict_by_seg[seg].keys():
+        for s in species_dict.keys():
 
             species_name = (s.replace(" ", "_"))
 
-            fastoutfile = working_dir + "/" + virus_family + "/" + seg + "/" + str(species_name) + ".fasta"
+            fastoutfile = working_dir + "/" + virus_family + "/" + str(species_name) + ".fasta"
 
             out_fastoutfile_handle = open(fastoutfile, "w")
 
-            seq_records = species_dict_by_seg[seg][s]
+            seq_records = species_dict[s]
 
             for record in seq_records:
                 out_fastoutfile_handle.write(">" + str(record.name) + "\n")
