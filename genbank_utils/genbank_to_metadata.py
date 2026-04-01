@@ -1,7 +1,6 @@
 __author__ = 'jayna'
 
 import Bio.SeqRecord
-from Bio import SeqRecord
 from Bio import SeqIO
 from Bio import AlignIO
 from datetime import datetime, date
