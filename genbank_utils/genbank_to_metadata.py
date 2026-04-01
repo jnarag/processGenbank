@@ -789,7 +789,7 @@ def rename_fasta(aln_file, metadata_file):
     metadata = pd.read_csv(metadata_file)
     aln = AlignIO.read(aln_file, 'fasta')
 
-    accession_numbers = metadata["Accession_number"]
+    accession_numbers = metadata["Accession_no"]
 
     for i in accession_numbers.keys():
 
@@ -802,7 +802,7 @@ def rename_fasta(aln_file, metadata_file):
 
                 metadata.s = metadata[metadata.Accession_number == acc]
 
-                new_name =  metadata.s['Accession_number'].get(i) + "_" + \
+                new_name =  metadata.s['Accession_no'].get(i) + "_" + \
                             metadata.s['Country'].get(i) + "_" + \
                             metadata.s['Host'].get(i) + "_" + \
                             metadata.s['Year'].get(i) + "_" + \
