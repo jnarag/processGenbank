@@ -6,6 +6,7 @@ from Bio import AlignIO
 from datetime import datetime, date
 import os
 import pandas as pd
+import numpy as np
 
 month_to_num = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10,
                 'Nov': 11, 'Dec': 12}
@@ -787,6 +788,7 @@ def process_gb_to_fasta_seg(gb_file, working_dir, virus_family):
 def rename_fasta(aln_file, metadata_file):
 
     metadata = pd.read_csv(metadata_file)
+    metadata = metadata.replace(np.nan, "NA")
     aln = AlignIO.read(aln_file, 'fasta')
 
     accession_numbers = metadata["Accession_no"]
@@ -802,11 +804,11 @@ def rename_fasta(aln_file, metadata_file):
 
                 metadata.s = metadata[metadata.Accession_no == acc]
 
-                new_name =  metadata.s['Accession_no'].get(i) + "_" + \
-                            metadata.s['Country'].get(i) + "_" + \
-                            metadata.s['Host'].get(i) + "_" + \
-                            metadata.s['Year'].get(i) + "_" + \
-                            metadata.s['Organism'].get(i)
+                new_name =  metadata.s['Accession_no'].get(i) + "|" + \
+                            metadata.s['Country'].get(i) + "|" + \
+                            metadata.s['Host'].get(i) + "|" + \
+                            str(metadata.s['Year'].get(i)) + "|" + \
+                            str.replace(metadata.s['Organism'].get(i), ' ', '..')
 
                 aln[s].name = new_name
                 aln[s].id = new_name
