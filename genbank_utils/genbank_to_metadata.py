@@ -800,7 +800,7 @@ def rename_fasta(aln_file, metadata_file):
 
             if acc in name:
 
-                metadata.s = metadata[metadata.Accession_number == acc]
+                metadata.s = metadata[metadata.Accession_no == acc]
 
                 new_name =  metadata.s['Accession_no'].get(i) + "_" + \
                             metadata.s['Country'].get(i) + "_" + \
